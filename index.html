@@ -104,6 +104,14 @@
             trElement.append(wardNumberCellElement);
 
             tableElement.getElementsByTagName("tbody")[0].append(trElement);
+
+            if (rowCount >= maxRows) {
+              break;
+            }
+          }
+          
+          if (rowCount >= maxRows) {
+            break;
           }
         }
 
