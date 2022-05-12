@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sault Ste. Marie Ward Finder</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" integrity="sha256-rTpdO0HXBCNpreAHcu6tB2Ppg515Vo+5GtYSsnNLz+8=" crossorigin="anonymous">
+</head>
+
+<body>
+  <main class="container" style="max-width:500px">
+    <h1 class="title has-text-centered mt-2">
+      Sault Ste. Marie Ward Finder
+    </h1>
+    <form class="box" id="addressForm">
+      <input class="input" name="address" id="address" type="search" placeholder="Find an address" aria-label="Address" />
+    </form>
+    <div class="my-4" id="resultsContainer" style="min-height:80vh">
+      <p class="has-text-centered">
+        <em>Loading addresses...</em>
+      </p>
+    </div>
+  </main>
+  <footer class="footer has-text-centered">
+    <strong>Links</strong><br />
+    <a href="https://www.soomaps.com/" rel="noopener">
+      Find your ward visually with SooMaps.com
+    </a><br />
+    <a href="https://saultstemarie.ca/Government/City-Departments/Corporate-Services/City-Clerk/Ward-Boundaries.aspx" rel="noopener">
+      View ward maps on SaultSteMarie.ca
+    </a>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.26.1/dist/axios.min.js" integrity="sha256-iSkNRnKsHORmMCNgQIxzyW0QzHrWeko/lyVjyI78G2c=" crossorigin="anonymous"></script>
+  <script>
+    (() => {
+      const wardNumbers = [1, 2, 3, 4, 5];
+      let wardsToLoad = wardNumbers.length;
+
+      let addressesByWard = {};
+
+      let addressStringPieces = [""];
+      const maxRows = 50;
+
+      function addressFilter(possibleAddress) {
+        const addressLowerCase = possibleAddress.CIVICNUMBER + " " + possibleAddress.STREETNAME.toLowerCase();
+
+        for (const addressPiece of addressStringPieces) {
+          if (!addressLowerCase.includes(addressPiece)) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function doSearch(formEvent) {
+
+        if (formEvent) {
+          try {
+            formEvent.preventDefault();
+          } catch {}
+        }
+
+        if (wardsToLoad > 0) {
+          return;
+        }
+
+        addressStringPieces = document.getElementById("address").value.toLowerCase().trim().split(" ");
+
+        const filteredAddressesByWard = {};
+
+        for (const [wardNumber, wardAddresses] of Object.entries(addressesByWard)) {
+          filteredAddressesByWard[wardNumber] = wardAddresses.filter(addressFilter);
+        }
+
+        const tableElement = document.createElement("table");
+        tableElement.className = "table is-fullwidth is-striped is-hoverable";
+        tableElement.innerHTML = "<thead><tr>" +
+          "<th>Civic Address</th>" +
+          "<th class=\"has-text-right\">Ward Number</th>" +
+          "</tr></thead>" +
+          "<tbody></tbody>";
+
+        let rowCount = 0;
+
+        for (const [wardNumber, filteredWardAddresses] of Object.entries(filteredAddressesByWard)) {
+          for (const address of filteredWardAddresses) {
+
+            rowCount += 1;
+
+            const trElement = document.createElement("tr");
+
+            const addressCellElement = document.createElement("td");
+            addressCellElement.textContent = address.CIVICNUMBER + " " + address.STREETNAME;
+            trElement.append(addressCellElement);
+
+            const wardNumberCellElement = document.createElement("td");
+            wardNumberCellElement.className = "has-text-right";
+            wardNumberCellElement.textContent = wardNumber;
+            trElement.append(wardNumberCellElement);
+
+            tableElement.getElementsByTagName("tbody")[0].append(trElement);
+          }
+        }
+
+        document.getElementById("resultsContainer").innerHTML = "";
+
+        if (rowCount > 0) {
+          document.getElementById("resultsContainer").append(tableElement);
+        } else {
+          document.getElementById("resultsContainer").innerHTML = "<p class=\"has-text-centered has-text-weight-bold\">Your search returned zero results.</p>";
+        }
+      }
+
+      function loadWard(wardNumber) {
+        axios.get("https://cityssm.github.io/soomaps-data/addresses-ward" + wardNumber + ".json")
+          .then((response) => {
+            return response.data;
+          })
+          .then((addresses) => {
+            addressesByWard[wardNumber.toString()] = addresses;
+          })
+          .finally(() => {
+            wardsToLoad -= 1;
+
+            if (wardsToLoad === 0) {
+              doSearch();
+            }
+          });
+      }
+
+      for (const wardNumber of wardNumbers) {
+        loadWard(wardNumber);
+      }
+
+      document.getElementById("addressForm").addEventListener("submit", doSearch);
+      document.getElementById("address").addEventListener("keyup", doSearch);
+    })();
+  </script>
+</body>
+
+</html>
