@@ -16,6 +16,7 @@
     <form class="box" id="addressForm">
       <input class="input" name="address" id="address" type="search" placeholder="Find an address" aria-label="Address" />
     </form>
+    <p class="has-text-centered has-text-weight-bold" id="resultsCount" aria-live="polite"></p>
     <div class="my-4" id="resultsContainer" style="min-height:80vh">
       <p class="has-text-centered">
         <em>Loading addresses...</em>
@@ -126,9 +127,14 @@
         document.getElementById("resultsContainer").innerHTML = "";
 
         if (rowCount > 0) {
+          document.getElementById("resultsCount").innerHTML =
+            "Displaying " + rowCount +
+            (rowCount === 1 ? " address" : " addresses") +
+            (rowCount === maxRows ? "<br />(Row limit reached)" : "");
+
           document.getElementById("resultsContainer").append(tableElement);
         } else {
-          document.getElementById("resultsContainer").innerHTML = "<p class=\"has-text-centered has-text-weight-bold\">Your search returned zero results.</p>";
+          document.getElementById("resultsCount").innerHTML = "Your search returned zero addresses.";
         }
       }
 
