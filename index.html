@@ -86,16 +86,24 @@
           "<tbody></tbody>";
 
         let rowCount = 0;
+        let previousAddress = "";
 
         for (const [wardNumber, filteredWardAddresses] of Object.entries(filteredAddressesByWard)) {
           for (const address of filteredWardAddresses) {
 
+            const currentAddress = address.CIVICNUMBER + " " + address.STREETNAME;
+
+            if (currentAddress === previousAddress) {
+              continue;
+            }
+
             rowCount += 1;
+            previousAddress = currentAddress;
 
             const trElement = document.createElement("tr");
 
             const addressCellElement = document.createElement("td");
-            addressCellElement.textContent = address.CIVICNUMBER + " " + address.STREETNAME;
+            addressCellElement.textContent = currentAddress;
             trElement.append(addressCellElement);
 
             const wardNumberCellElement = document.createElement("td");
