@@ -153,7 +153,7 @@
       }
 
       function loadWard(wardNumber) {
-        axios.get("https://cityssm.github.io/soomaps-data/addresses-ward" + wardNumber + ".json")
+        axios.get("https://cityssm.github.io/soomaps-data/data/addresses-ward" + wardNumber + ".json")
           .then((response) => {
             return response.data;
           })
